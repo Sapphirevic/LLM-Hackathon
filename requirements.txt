@@ -1,0 +1,19 @@
+pymongo 
+pandas
+plotly
+statsmodels
+numpy
+seaborn
+langchain
+requests
+langchain_community
+dotenv
+# %pip install --upgrade --quiet  
+langchain-huggingface 
+text-generation 
+transformers 
+google-search-results
+numexpr 
+langchainhub 
+sentencepiece 
+jinja2
