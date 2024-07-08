@@ -1,7 +1,6 @@
 pymongo 
 pandas
 plotly
-statsmodels
 numpy
 seaborn
 langchain
@@ -13,7 +12,10 @@ langchain-huggingface
 text-generation 
 transformers 
 google-search-results
-numexpr 
 langchainhub 
-sentencepiece 
-jinja2
+# sentencepiece 
+# jinja2
+mongodb
+langchain_mongodb
+langchain-core
+# transformers 

@@ -1,0 +1,27 @@
+from pymongo import MongoClient
+import pandas as pd
+
+
+# class MongoDBChatMessageHistory:
+#     def __init__(
+#         self,
+#         session_id: str,
+#         connection_string: str,
+#         database_name: str,
+#         collection_name: str,
+#     ):
+#         self.client = MongoClient(connection_string)
+#         self.db = self.client[database_name]
+#         self.collection = self.db[collection_name]
+#         self.session_id = session_id
+
+#     def append_message(self, role: str, content: str):
+#         message = {"session_id": self.session_id, "role": role, "content": content}
+#         self.collection.insert_one(message)
+
+#     def get_messages(self):
+#         messages = self.collection.find({"session_id": self.session_id})
+#         return [{"role": msg["role"], "content": msg["content"]} for msg in messages]
+
+#     def clear_history(self):
+#         self.collection.delete_many({"session_id": self.session_id})
