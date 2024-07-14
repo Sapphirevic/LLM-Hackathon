@@ -1,92 +1,107 @@
-from pymongo import MongoClient
-import pandas as pd
-from transformers import AutoModelForCausalLM, AutoTokenizer
+# from dotenv import load_dotenv
+# import os
+# import pandas as pd
+# from pymongo import MongoClient
+# from flask import Flask, request, jsonify
+# import openai
+# from langchain.chains import LLMChain
+# from langchain_community.llms import OpenAI
+# from openai.types.chat import ChatCompletionMessage
+# from langchain.prompts import PromptTemplate
+# from langchain.chat_models import ChatOpenAI
+# from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
+# from langchain.memory import MongoDBChatMessageHistory
+# from langchain.chains import LLMChain
+# from langchain.schema import BaseMessage
 
-client = MongoClient("mongodb://localhost:27017/")
-db = client["sales_database"]
-collection = db["retail_data"]
+# # Load environment variables from the .env file
+# # env_path = 'C:/Users/2024/llm/LLM-Hackathon/src/.env'
+# # load_dotenv(dotenv_path=env_path)
+# openai_api_key = 
 
-# Load the data into a pandas DataFrame
-data = pd.DataFrame(list(collection.find()))
+# # Initialize the ChatOpenAI model
+# model = ChatOpenAI(
+#     api_key="openai_api_key",
+#     temperature=0.2,
+#     model='gpt-3.5-turbo'
+# )
 
-data["Period"] = pd.to_datetime(data["Period"])
+# # Create the chat prompt template
+# prompt = ChatPromptTemplate.from_messages([
+#     ("system", """You are a sales analyst assistant. Provide accurate answers based on the {context} provided. 
+#     If you don't know the answer to any question, truthfully say so and do not make up information."""),
+#     MessagesPlaceholder(variable_name="chat_history"),
+#     HumanMessagePromptTemplate.from_template("{input}")
+# ])
 
+# # Create the LLMChain
+# chain = LLMChain(llm=model, prompt=prompt)
 
-# Load model and tokenizer
-model_name = "gpt-3.5-turbo"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
+# # Initialize MongoDB chat message history
+# def get_chat_history(session_id: str) -> MongoDBChatMessageHistory:
+#     return MongoDBChatMessageHistory(
+#         session_id=session_id,
+#         connection_string="mongodb://localhost:27017",
+#         database_name="History",
+#         collection_name="chat_history"
+#     )
 
+# # Function to fetch context from MongoDB
+# def fetch_context_from_mongodb():
+#     client = MongoClient("mongodb://localhost:27017")
+#     db = client["sales_database"]
+#     collection = db["retail_data"]
+    
+#     # Fetch the most recent document as an example
+#     # You may want to adjust this query based on your needs
+#     document = collection.find_one(sort=[('_id', -1)])
+    
+#     if document:
+#         context = f"""
+#         Period: {document['Period']}
+#         City: {document['City']}
+#         Channel: {document['Channel']}
+#         Category: {document['Category']}
+#         Segment: {document['Segment']}
+#         Manufacturer: {document['Manufacturer']}
+#         Brand: {document['Brand']}
+#         Item Name: {document['Item Name']}
+#         Pack Size: {document['Pack_Size']}
+#         Packaging: {document['Packaging']}
+#         Unit Price: {document['Unit_Price']}
+#         Sales Volume (KG/LTRS): {document['Sales_Volume(KG_LTRS)']}
+#         Sales Value: {document['Sales_Value']}
+#         """
+#         return context
+#     else:
+#         return "No data available in the database."
 
-# Define the prompt template
-def generate_prompt(query, context):
-    prompt = f"""
-    You are a market performance expert. Based on the context provided, answer the following query. If you don't know the answer to any question truthfully say so and do not hallucinate.:
-    Query: {query}
-    Context: {context}
-    """
-    return prompt
+# # Main conversation loop
+# def chat_bot():
+#     session_id = "terminal_session"  # You can generate a unique ID if needed
+#     chat_history = get_chat_history(session_id)
 
+#     print("Welcome to the Sales Analyst Assistant. Type 'exit' to end the conversation.")
+    
+#     while True:
+#         user_input = input("\nYou: ")
+#         if user_input.lower() == 'exit':
+#             print("Thank you for using the Sales Analyst Assistant. Goodbye!")
+#             break
+        
+#         context = fetch_context_from_mongodb()
+        
+#         response = chain.run(
+#             context=context,
+#             chat_history=chat_history.messages,
+#             input=user_input
+#         )
+        
+#         print(f"\nAssistant: {response}")
+        
+#         # Add the interaction to chat history
+#         chat_history.add_user_message(user_input)
+#         chat_history.add_ai_message(response)
 
-def get_best_performing_brand(city):
-    df = data[data["City"] == city]
-    best_brand = df.groupby("Brand")["Sales_Volume(KG_LTRS)"].sum().idxmax()
-    return best_brand
-
-
-def get_sales_trends(quarter):
-    df = data[data["Period"].dt.to_period("Q") == quarter]
-    top_brands = df.groupby("Brand")["Sales_Volume(KG_LTRS)"].sum().nlargest(5)
-    return top_brands
-
-
-def compare_brand_performance(brand_a, brand_b):
-    df_a = (
-        data[data["Brand"] == brand_a]
-        .groupby(["City", data["Period"].dt.to_period("Q")])["Sales_Volume(KG_LTRS)"]
-        .sum()
-    )
-    df_b = (
-        data[data["Brand"] == brand_b]
-        .groupby(["City", data["Period"].dt.to_period("Q")])["Sales_Volume(KG_LTRS)"]
-        .sum()
-    )
-    comparison = pd.DataFrame({"Brand A": df_a, "Brand B": df_b})
-    return comparison
-
-
-def get_market_size(quarter):
-    df = data[data["Period"].dt.to_period("Q") == quarter]
-    market_size = df["Sales_Value"].sum()
-    return market_size
-
-
-def get_chatbot_response(query):
-    context = ""  # Extract relevant context from your dataset
-    if "best performing brand" in query:
-        city = query.split("in")[-1].strip()
-        result = get_best_performing_brand(city)
-        context = f"The best performing brand in {city} is {result}."
-    elif "top-performing brands" in query:
-        quarter = query.split("in the last quarter")[-1].strip()
-        result = get_sales_trends(quarter)
-        context = f"The top-performing brands in the last quarter are {result}."
-    elif "performance of" in query:
-        brands = query.split("compared to")
-        brand_a = brands[0].split("performance of")[-1].strip()
-        brand_b = brands[1].strip()
-        result = compare_brand_performance(brand_a, brand_b)
-        context = (
-            f"Comparison of performance between {brand_a} and {brand_b}: {result}."
-        )
-    elif "market size" in query:
-        quarter = query.split("in each quarter")[-1].strip()
-        result = get_market_size(quarter)
-        context = f"The market size in each quarter is {result}."
-
-    prompt = generate_prompt(query, context)
-    inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs, max_length=100)
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-    return response
+# if __name__ == "__main__":
+#     chat_bot()
