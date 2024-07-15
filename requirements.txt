@@ -1,21 +1,20 @@
 pymongo 
 pandas
 plotly
+openai
 numpy
 seaborn
 langchain
 requests
-langchain_community
+langchain-community
+langchainplus-sdk
 dotenv
 # %pip install --upgrade --quiet  
 langchain-huggingface 
 text-generation 
 transformers 
-google-search-results
 langchainhub 
-# sentencepiece 
-# jinja2
-mongodb
 langchain_mongodb
 langchain-core
+langchain-experimental
 # transformers 
